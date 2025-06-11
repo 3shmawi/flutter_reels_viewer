@@ -167,7 +167,7 @@ class _FlutterReelsViewerState extends State<FlutterReelsViewer> {
   /// [PreloadPageView] initializes more than one videos at times
   PreloadPageView _pageView() {
     return PreloadPageView.builder(
-      itemCount: videosList.length + 1,
+      itemCount: videosList.length + 1000000000,
       physics: widget.scrollPhysics,
       reverse: widget.reverse,
       controller: widget.pageController,
@@ -177,13 +177,6 @@ class _FlutterReelsViewerState extends State<FlutterReelsViewer> {
           ? 1
           : widget.preloadPagesCount,
       onPageChanged: (int index) {
-        if (index == videosList.length) {
-          Future.delayed(const Duration(milliseconds: 50), () {
-            if (mounted && widget.pageController != null) {
-              widget.pageController!.jumpToPage(0);
-            }
-          });
-        }
         _onPageChange(index % videosList.length);
       },
       itemBuilder: (context, index) => _child(index % videosList.length),
