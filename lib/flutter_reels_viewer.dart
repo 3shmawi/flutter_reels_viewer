@@ -4,8 +4,8 @@ import 'package:cached_video_player_plus/cached_video_player_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:preload_page_view/preload_page_view.dart';
 
-import 'reel_view_item.dart';
 import 'reel_model.dart';
+import 'reel_view_item.dart';
 
 typedef VideoOverlayWidgetBuilder = Widget Function(
     BuildContext context, int index);
@@ -164,7 +164,7 @@ class _FlutterReelsViewerState extends State<FlutterReelsViewer> {
     );
   }
 
-  /// [PreloadPageView] initializes more than one videos at time
+  /// [PreloadPageView] initializes more than one videos at times
   PreloadPageView _pageView() {
     return PreloadPageView.builder(
       itemCount: videosList.length,
@@ -176,7 +176,25 @@ class _FlutterReelsViewerState extends State<FlutterReelsViewer> {
       preloadPagesCount: widget.preloadPagesCount > videosList.length
           ? 1
           : widget.preloadPagesCount,
-      onPageChanged: (int index) => _onPageChange(index),
+      onPageChanged: (int index) {
+        _onPageChange(index);
+        // Handle looping
+        if (index == videosList.length - 1) {
+          // When reaching the last page, jump to first page
+          Future.delayed(const Duration(milliseconds: 100), () {
+            if (mounted && widget.pageController != null) {
+              widget.pageController!.jumpToPage(0);
+            }
+          });
+        } else if (index == 0 && widget.reverse) {
+          // When reaching the first page in reverse mode, jump to last page
+          Future.delayed(const Duration(milliseconds: 100), () {
+            if (mounted && widget.pageController != null) {
+              widget.pageController!.jumpToPage(videosList.length - 1);
+            }
+          });
+        }
+      },
       itemBuilder: (context, index) => _child(index),
     );
   }
