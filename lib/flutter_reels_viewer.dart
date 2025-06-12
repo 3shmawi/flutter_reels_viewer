@@ -1,4 +1,4 @@
-library flutter_reels_viewer;
+library;
 
 import 'package:cached_video_player_plus/cached_video_player_plus.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +15,7 @@ typedef VideoOverlayWidgetBuilder = Widget Function(
 class FlutterReelsViewer extends StatefulWidget {
   /// Widget that will show as a overlay on the video
   VideoOverlayWidgetBuilder? overlayBuilder;
+  final bool isInfiniteScroll;
 
   /// enum sourceType values holds the type of source Network, Assets or File
   VideoSource sourceType;
@@ -53,6 +54,8 @@ class FlutterReelsViewer extends StatefulWidget {
   /// current playing video controller and index
   Function(CachedVideoPlayerPlusController? videoPlayerController, int index)?
       onPageChanged;
+
+  final Widget Function(BuildContext context, int index)? foregroundItemBuilder;
   ScrollPhysics? scrollPhysics;
   bool reverse;
   bool pageSnapping;
@@ -86,6 +89,8 @@ class FlutterReelsViewer extends StatefulWidget {
     this.onPageChanged,
     this.showControlsOverlay = true,
     this.showVideoProgressIndicator = true,
+    this.isInfiniteScroll = false,
+    this.foregroundItemBuilder,
   }) : sourceType = VideoSource.network;
 
   /// plays videos from list of video files
@@ -110,6 +115,8 @@ class FlutterReelsViewer extends StatefulWidget {
     this.onPageChanged,
     this.showControlsOverlay = true,
     this.showVideoProgressIndicator = true,
+    this.isInfiniteScroll = false,
+    this.foregroundItemBuilder,
   }) : sourceType = VideoSource.file;
 
   /// plays videos from list of asset videos
@@ -134,6 +141,8 @@ class FlutterReelsViewer extends StatefulWidget {
     this.onPageChanged,
     this.showControlsOverlay = true,
     this.showVideoProgressIndicator = true,
+    this.isInfiniteScroll = false,
+    this.foregroundItemBuilder,
   }) : sourceType = VideoSource.asset;
 }
 
@@ -167,7 +176,9 @@ class _FlutterReelsViewerState extends State<FlutterReelsViewer> {
   /// [PreloadPageView] initializes more than one videos at times
   PreloadPageView _pageView() {
     return PreloadPageView.builder(
-      itemCount: videosList.length + 1000000000,
+      itemCount: widget.isInfiniteScroll
+          ? (videosList.length + 1000000000)
+          : videosList.length,
       physics: widget.scrollPhysics,
       reverse: widget.reverse,
       controller: widget.pageController,
@@ -179,7 +190,16 @@ class _FlutterReelsViewerState extends State<FlutterReelsViewer> {
       onPageChanged: (int index) {
         _onPageChange(index % videosList.length);
       },
-      itemBuilder: (context, index) => _child(index % videosList.length),
+      itemBuilder: (context, index) => Stack(
+        alignment: Alignment.bottomCenter,
+        fit: StackFit.expand,
+        children: [
+          Positioned.fill(child: _child(index % videosList.length)),
+          if (widget.foregroundItemBuilder != null)
+            widget.foregroundItemBuilder!
+                .call(context, index % videosList.length),
+        ],
+      ),
     );
   }
 
